@@ -1,0 +1,23 @@
+name: Build release
+on:
+  push:
+    tags:
+    - *
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set vars
+        id: vars
+        run: |
+          echo "CURRENT_VERSION=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
+      - name: Debug
+        run: |
+          echo $CURRENT_VERSION
+          echo ${{ steps.vars.outputs.CURRENT_VERSION }}

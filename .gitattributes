@@ -1,0 +1,6 @@
+*.dll binary
+*.exe binary
+*.sys binary
+.gitattributes export-ignore  
+.gitignore export-ignore
+.github/** export-ignore
