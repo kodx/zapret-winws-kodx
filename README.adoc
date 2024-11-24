@@ -3,7 +3,7 @@
 :email: link:http://kodx.org[kodx.org]
 :url-repo: https://github.com/kodx/zapret-winws-kodx
 :zapret-url: https://github.com/bol-van/zapret
-:description: Сборка бинарных файлов из проекта link:{zapret-url}[Zapret] c несколькими предустановленными вариантами настроек.
+:description: Сборка бинарных файлов из проекта link:{zapret-url}[Zapret] под Windows c несколькими предустановленными вариантами настроек.
 
 {description}
 
