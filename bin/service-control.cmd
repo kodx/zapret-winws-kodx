@@ -74,38 +74,54 @@ if defined res (
 
 if %op%==0 goto start
 
-echo Выбран вариант "%op%"
-echo.
-echo You option "%op%"
+echo Выбран вариант "%op%" │ You option "%op%"
 goto %op%
 :run
 set SVCBIN="\"%BIN%winws.exe\" %ARGS%"
 call :srvinst %SRVNAME%
 
 :srvinst
+echo Stopping %1 ...
 net stop %1
+echo Deleting %1 ...
 sc delete %1
+echo Creating service %1 with cmd %SVCBIN%
 sc create %1 binPath= %SVCBIN% DisplayName= "zapret DPI bypass : %1" start= auto
 sc description %1 "zapret DPI bypass software"
+echo Starting %1 ...
 sc start %1
 goto start
 
 :srvstart
+echo Starting %1 ...
 sc start %1
 goto start
 
 :srvrestart
+echo Stopping %1 ...
 net stop %1
+echo Starting %1 ...
 sc start %1
 goto start
 
 :srvstop
+echo Stopping %1 ...
 net stop %1
 goto start
 
 :srvdel
+echo Stopping %1 ...
 net stop %1
+echo Deleting %1 ...
 sc delete %1
+echo Stopping WinDivert ...
+net stop "WinDivert"
+echo Deleting WinDivert ...
+sc delete "WinDivert"
+echo Stopping WinDivert14 ...
+net stop "WinDivert14"
+echo Deleting WinDivert14 ...
+sc delete "WinDivert14"
 goto start
 
 :end
