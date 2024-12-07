@@ -12,15 +12,35 @@ set SRVNAME=winws1
 set BIN=%~dp0winws\
 set FAKE_PATH=%~dp0..\files
 set LIST_PATH=%~dp0..\lists
-set TLS_GOOGLE=%FAKE_PATH%\tls_clienthello_www_google_com.bin
-set QUIC_GOOGLE=%FAKE_PATH%\quic_initial_www_google_com.bin
-set TLS_IANA=%FAKE_PATH%\tls_clienthello_iana_org.bin
-set YT_LIST=%LIST_PATH%\list-youtube.txt
-set C_LIST=%LIST_PATH%\list-custom.txt
-set DIS_LIST=%LIST_PATH%\list-discord.txt
-set COMBO_LIST=%DIS_LIST% --hostlist=%C_LIST%
-set ALL_LIST=%YT_LIST% --hostlist=%COMBO_LIST%
-set DIS_IPSET=%LIST_PATH%\ipset-discord.txt
+set TLS_GOOGLE="%FAKE_PATH%\tls_clienthello_www_google_com.bin"
+set QUIC_GOOGLE="%FAKE_PATH%\quic_initial_www_google_com.bin"
+set TLS_IANA="%FAKE_PATH%\tls_clienthello_iana_org.bin"
+set YT_LIST="%LIST_PATH%\list-youtube.txt"
+IF EXIST "%YT_LIST%" (
+    set YT_LIST=--hostlist=%YT_LIST%
+) ELSE (
+    set YT_LIST=
+)
+set C_LIST="%LIST_PATH%\list-custom.txt"
+IF EXIST "%C_LIST%" (
+    set C_LIST=--hostlist=%C_LIST%
+) ELSE (
+    set C_LIST=
+)
+set DIS_LIST="%LIST_PATH%\list-discord.txt"
+IF EXIST "%DIS_LIST%" (
+    set DIS_LIST=--hostlist=%DIS_LIST%
+) ELSE (
+    set DIS_LIST=
+)
+set COMBO_LIST=%DIS_LIST% %C_LIST%
+set ALL_LIST=%YT_LIST% %COMBO_LIST%
+set DIS_IPSET="%LIST_PATH%\ipset-discord.txt"
+IF EXIST "%DIS_IPSET%" (
+    set DIS_IPSET=--ipset=%DIS_IPSET%
+) ELSE (
+    set DIS_IPSET=
+)
 set DIS_PORTSET=50000-50099
 
 :start
@@ -129,99 +149,99 @@ exit
 
 :1
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake,multidisorder --dpi-desync-split-pos=1,midsld --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-repeats=11 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC  --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-any-protocol --dpi-desync-cutoff=n4
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake,multidisorder --dpi-desync-split-pos=1,midsld --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-repeats=11 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC  --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-any-protocol --dpi-desync-cutoff=n4
 
 :2
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
 goto run
 
 :3
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=5 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=5 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=5 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=5 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
 goto run
 
 :4
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=multisplit --dpi-desync-split-seqovl=652 --dpi-desync-split-pos=2 --dpi-desync-split-seqovl-pattern=%TLS_GOOGLE%  --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=multisplit --dpi-desync-split-seqovl=652 --dpi-desync-split-pos=2 --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=multisplit --dpi-desync-split-seqovl=652 --dpi-desync-split-pos=2 --dpi-desync-split-seqovl-pattern=%TLS_GOOGLE%  --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=multisplit --dpi-desync-split-seqovl=652 --dpi-desync-split-pos=2 --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
 goto run
 
 :5
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%ALL_LIST% --dpi-desync=fakedsplit --dpi-desync-split-pos=1 --dpi-desync-autottl --dpi-desync-fooling=badseq --dpi-desync-repeats=8 --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %ALL_LIST% --dpi-desync=fakedsplit --dpi-desync-split-pos=1 --dpi-desync-autottl --dpi-desync-fooling=badseq --dpi-desync-repeats=8 --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
 goto run
 
 :6
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake,multisplit --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake,multisplit --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=8
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake,multisplit --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake,multisplit --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=8
 goto run
 
 :7
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --new ^
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --new ^
 --filter-l3=ipv4 --filter-tcp=443 --dpi-desync=syndata
 goto run
 
 :8
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
 goto run
 
 :9
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=6 --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
 goto run
 
 :10
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake,multisplit --dpi-desync-ttl=1 --dpi-desync-autottl=5 --dpi-desync-repeats=6 --dpi-desync-fake-tls=%TLS_GOOGLE% ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake,multisplit --dpi-desync-ttl=1 --dpi-desync-autottl=5 --dpi-desync-repeats=6 ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake,multisplit --dpi-desync-ttl=1 --dpi-desync-autottl=5 --dpi-desync-repeats=6 --dpi-desync-fake-tls=%TLS_GOOGLE% ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake,multisplit --dpi-desync-ttl=1 --dpi-desync-autottl=5 --dpi-desync-repeats=6 ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
 --wf-l3=ipv4 --wf-tcp=443 --dpi-desync=syndata ^
 --wf-l3=ipv4 --wf-tcp=443 --dpi-desync=syndata --dpi-desync-fake-syndata=%TLS_IANA% ^
 --wf-l3=ipv4 --wf-tcp=443 --dpi-desync=syndata,multisplit ^
@@ -238,32 +258,32 @@ goto run
 
 :11
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE%
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE%
 goto run
 
 :12
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE%
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE%
 goto run
 
 :13
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig ^
 --wf-l3=ipv4 --wf-tcp=443 --dpi-desync=syndata ^
 --wf-l3=ipv4 --wf-tcp=443 --dpi-desync=syndata --dpi-desync-fake-syndata=%TLS_IANA% ^
 --wf-l3=ipv4 --wf-tcp=443 --dpi-desync=syndata,multisplit ^
@@ -280,22 +300,22 @@ goto run
 
 :14
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE%
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE%
 goto run
 
 :15
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-udp=%DIS_PORTSET% --ipset=%DIS_IPSET% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-any-protocol --dpi-desync-cutoff=n2 --new ^
+--filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-any-protocol --dpi-desync-cutoff=n2 --new ^
 --filter-udp=%DIS_PORTSET% --new ^
---filter-udp=443 --hostlist=%YT_LIST% --dpi-desync=fake --dpi-desync-repeats=11 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=11 --new ^
---filter-tcp=80 --hostlist=%ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
---filter-tcp=443 --hostlist=%YT_LIST% --dpi-desync=fake,multisplit --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
---filter-tcp=443 --hostlist=%COMBO_LIST% --dpi-desync=fake,multisplit --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig --new ^
+--filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-repeats=11 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-repeats=11 --new ^
+--filter-tcp=80 %ALL_LIST% --dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig --new ^
+--filter-tcp=443 %YT_LIST% --dpi-desync=fake,multisplit --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
+--filter-tcp=443 %COMBO_LIST% --dpi-desync=fake,multisplit --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig --new ^
 --dpi-desync=fake,multidisorder --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig
 goto run
