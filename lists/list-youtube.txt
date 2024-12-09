@@ -10,7 +10,6 @@ nhacmp3youtube.com
 googleusercontent.com
 gstatic.com
 1e100.net
-yt3.ggpht.com
 yt.be
 gvt1.com
 youtubekids.com
@@ -23,4 +22,3 @@ yt-video-upload.l.google.com
 wide-youtube.l.google.com
 ytimg.l.google.com
 jnn-pa.googleapis.com
-yt4.ggpht.com
