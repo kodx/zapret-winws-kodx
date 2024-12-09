@@ -153,8 +153,9 @@ set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
 --filter-tcp=443 %YT_LIST% --dpi-desync=fake,multidisorder --dpi-desync-split-pos=1,midsld --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE% --new ^
 --filter-tcp=443 %COMBO_LIST% --dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --new ^
 --filter-udp=443 %YT_LIST% --dpi-desync=fake --dpi-desync-repeats=11 --dpi-desync-fake-quic=%QUIC_GOOGLE% --new ^
---filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC  --new ^
+--filter-udp=443 %COMBO_LIST% --dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --new ^
 --filter-udp=%DIS_PORTSET% %DIS_IPSET% --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-any-protocol --dpi-desync-cutoff=n4
+goto run
 
 :2
 set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
