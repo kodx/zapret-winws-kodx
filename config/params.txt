@@ -1,0 +1,41 @@
+p[1]=--dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig
+p[2]=--dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq
+p[3]=--dpi-desync=syndata --dpi-desync-fake-syndata=%TLS_IANA% --dpi-desync-autottl
+p[4]=--dpi-desync=fake,multidisorder --dpi-desync-split-pos=1,midsld --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE%
+p[5]=--dpi-desync=fake --dpi-desync-repeats=11
+p[6]=--dpi-desync=fake --dpi-desync-repeats=11 --dpi-desync-fake-quic=%QUIC_GOOGLE%
+p[7]=--dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq
+p[8]=--dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC
+p[9]=--dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC --dpi-desync-fake-quic=%QUIC_GOOGLE%
+p[10]=--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-any-protocol --dpi-desync-cutoff=n4
+p[11]=--dpi-desync=fake,multidisorder --dpi-desync-split-seqovl=1 --dpi-desync-split-pos=midsld,1 --dpi-desync-fooling=md5sig,badseq --dpi-desync-fake-tls=%TLS_IANA% --dpi-desync-autottl
+p[12]=--dpi-desync=multisplit --dpi-desync-split-seqovl=1 --dpi-desync-split-pos=midsld+1
+p[13]=--dpi-desync=fake,udplen --dpi-desync-udplen-increment=4 --dpi-desync-fake-quic=%QUIC_VK% --dpi-desync-cutoff=n3 --dpi-desync-repeats=2
+p[14]=--dpi-desync=fake,udplen --dpi-desync-udplen-increment=5 --dpi-desync-udplen-pattern=0xDEADBEEF --dpi-desync-fake-quic=%QUIC_SHORT% --dpi-desync-cutoff=n2 --dpi-desync-repeats=7
+p[15]=--dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=n3
+p[16]=--dpi-desync=multisplit --dpi-desync-split-seqovl=652 --dpi-desync-split-pos=2 --dpi-desync-split-seqovl-pattern=%TLS_GOOGLE%
+p[17]=--dpi-desync=fake --dpi-desync-repeats=6
+p[18]=--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE%
+p[19]=--dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6
+p[20]=--dpi-desync=fakedsplit --dpi-desync-split-pos=1 --dpi-desync-autottl --dpi-desync-fooling=badseq --dpi-desync-repeats=8
+p[21]=--dpi-desync=fake,multisplit --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE%
+p[22]=--dpi-desync=fake,multisplit --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig
+p[23]=--dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=8
+p[24]=--dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --dpi-desync-fake-tls=%TLS_GOOGLE%
+p[25]=--dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq
+p[26]=--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE%
+p[27]=--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE%
+p[28]=--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig
+p[29]=--dpi-desync=fake,multisplit --dpi-desync-ttl=1 --dpi-desync-autottl=5 --dpi-desync-repeats=6 --dpi-desync-fake-tls=%TLS_GOOGLE%
+p[30]=--dpi-desync=fake,multisplit --dpi-desync-ttl=1 --dpi-desync-autottl=5 --dpi-desync-repeats=6
+p[31]=--dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE%
+p[32]=--dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE%
+p[33]=--dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig
+p[34]=--dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE%
+p[35]=--dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig
+p[36]=--dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE%
+p[37]=--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-any-protocol --dpi-desync-cutoff=n2
+p[38]=--dpi-desync=fake,multisplit --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig
+p[39]=--dpi-desync=fake,multisplit --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE%
+p[40]=--dpi-desync=fake,multisplit --dpi-desync-fooling=md5sig --dpi-desync-autottl
+p[41]=--dpi-desync=fake,multisplit --dpi-desync-split-seqovl=1 --dpi-desync-split-pos=midsld-1 --dpi-desync-fooling=md5sig,badseq --dpi-desync-fake-tls=%TLS_IANA% --dpi-desync-autottl

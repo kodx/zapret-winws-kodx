@@ -1,5 +1,5 @@
 = Zapret winws kodx
-:author: Егор Баев
+:author: kodx <kodx.org>
 :email: link:http://kodx.org[kodx.org]
 :url-repo: https://github.com/kodx/zapret-winws-kodx
 :zapret-url: https://github.com/bol-van/zapret
