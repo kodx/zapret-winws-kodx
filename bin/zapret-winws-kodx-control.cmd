@@ -21,15 +21,18 @@ set "QUIC_VK="%FAKE_PATH%\quic_initial_vk_com.bin""
 set "QUIC_SHORT="%FAKE_PATH%\quic_short.bin""
 set "TLS_IANA="%FAKE_PATH%\tls_clienthello_iana_org.bin""
 
-set "YT_TCP_LIST=%LIST_PATH%\list-youtube-ui.txt"
-set "YT_UDP_LIST=%LIST_PATH%\list-youtube-quic.txt"
-set "YT_IP_IPSET=%LIST_PATH%\ipset-youtube-rtmps.txt"
+set "YT_HTTP_LIST=%LIST_PATH%\list-youtube-https.txt"
+set "YT_HTTPS_LIST=%LIST_PATH%\list-youtube-https.txt"
+set "YT_UDP_LIST=%LIST_PATH%\list-youtube-udp.txt"
+set "YT_IP_IPSET=%LIST_PATH%\ipset-youtube-ip.txt"
 
 set "CUSTOM_LIST=%LIST_PATH%\list-custom.txt"
 
-set "DIS_TCP_LIST=%LIST_PATH%\list-discord.txt"
-set "DIS_UDP_LIST=%LIST_PATH%\list-discord.txt"
-set "DIS_IP_IPSET=%LIST_PATH%\ipset-discord.txt"
+set "DIS_HTTP_LIST=%LIST_PATH%\list-discord-https.txt"
+set "DIS_HTTPS_LIST=%LIST_PATH%\list-discord-https.txt"
+set "DIS_UDP_LIST=%LIST_PATH%\list-discord-udp.txt"
+set "DIS_IP_IPSET=%LIST_PATH%\ipset-discord-ip.txt"
+
 set "DIS_PORTSET=50000-50099"
 
 set "BLACK_LIST_URL=https://p.thenewone.lol/domains-export.txt"
@@ -42,8 +45,8 @@ set "VARIANTS_FILE=%CONFIG_PATH%\variants.txt"
 set "CONFIG_FILE=%CONFIG_PATH%\config.txt"
 set "CUSTOM_SETTINGS_FILE=%CONFIG_PATH%\custom.txt"
 
-set ADDR_LIST="YT_TCP_LIST" "YT_UDP_LIST" "YT_IP_IPSET" "CUSTOM_LIST" "DIS_TCP_LIST" "DIS_UDP_LIST" "DIS_IP_IPSET" "AUTO_LIST" "BLACK_LIST"
-set ARG_VAR_LIST="HTTP" "CUSTOM" "YT_TCP" "YT_UDP" "YT_IP" "DIS_TCP" "DIS_UDP" "DIS_IP" "AUTO" "BLACK_HTTP" "BLACK_HTTPS"
+set ADDR_LIST="YT_HTTP_LIST" "YT_HTTPS_LIST" "YT_UDP_LIST" "YT_IP_IPSET" "DIS_HTTP_LIST" "DIS_HTTPS_LIST" "DIS_UDP_LIST" "DIS_IP_IPSET" "CUSTOM_LIST" "AUTO_LIST" "BLACK_LIST"
+set ARG_VAR_LIST="YT_HTTP" "YT_HTTPS" "YT_UDP" "YT_IP" "DIS_HTTP" "DIS_HTTPS" "DIS_UDP" "DIS_IP" "CUSTOM_HTTP" "CUSTOM_HTTPS" "AUTO" "BLACK_HTTP" "BLACK_HTTPS"
 
 set _ARG_VAR_LEN=0
 for %%I in (%ARG_VAR_LIST%) do (
@@ -54,6 +57,12 @@ rem set addr vars from list
 for %%i in (%ADDR_LIST%) do (
    call :SetAddrlistVar %%i
 )
+
+set "EXCLUDE_HTTP_LIST="
+set "EXCLUDE_HTTPS_LIST="
+
+call :SetExcludeList "HTTP" "YT_HTTP_LIST DIS_HTTP_LIST CUSTOM_LIST"
+call :SetExcludeList "HTTPS" "YT_HTTPS_LIST DIS_HTTPS_LIST CUSTOM_LIST"
 
 set "HTTP_LIST=%YT_TCP_LIST% %DIS_TCP_LIST% %CUSTOM_LIST%"
 
@@ -83,6 +92,10 @@ exit /b 0
 rem %1 - param number
 :GetPVar
     set "_result=!p[%1]!"
+exit /b 0
+
+:GetVar
+    set "_result=!%~1!"
 exit /b 0
 
 :GetFullPath
@@ -132,6 +145,18 @@ exit /b 0
     set %_in_param%=%_result%
 exit /b 0
 
+:SetExcludeList
+    set "_IN_MODE=%~1"
+    set "_IN_LIST=%2"
+    set "_EX_L=EXCLUDE_%_IN_MODE%_LIST"
+    for %%A in (%_IN_LIST:"=%) do (
+        if defined %%~A (
+            call :GetVar "%_EX_L%"
+            set "!_EX_L!=!_result!--hostlist-exclude=!%%~A:~11! "
+        )
+    )
+exit /b 0
+
 :ReadCustomSettings
     for /f "delims=" %%L in (%CUSTOM_SETTINGS_FILE%) do (
         set %%L
@@ -162,20 +187,26 @@ rem %1 - variant number
     )
 
     set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 %HTTP_LIST% %HTTP_ARG% --new ^
---filter-tcp=443 %CUSTOM_LIST% %CUSTOM_ARG% --new ^
---filter-tcp=443 %YT_TCP_LIST% %YT_TCP_ARG% --new ^
+--filter-tcp=80 %YT_HTTP_LIST% %YT_HTTP_ARG% --new ^
+--filter-tcp=443 %YT_HTTPS_LIST% %YT_HTTPS_ARG% --new ^
 --filter-udp=443 %YT_UDP_LIST% %YT_UDP_ARG% --new ^
 --filter-tcp=443 %YT_IP_IPSET% %YT_IP_ARG% --new ^
---filter-tcp=443 %DIS_TCP_LIST% %DIS_TCP_ARG% --new ^
+--filter-tcp=80 %DIS_HTTP_LIST% %DIS_HTTP_ARG% --new ^
+--filter-tcp=443 %DIS_HTTPS_LIST% %DIS_HTTPS_ARG% --new ^
 --filter-udp=443 %DIS_UDP_LIST% %DIS_UDP_ARG% --new ^
 --filter-udp=%DIS_PORTSET% %DIS_IP_IPSET% %DIS_IP_ARG% --new ^
 --filter-tcp=443 %AUTO_LIST% %AUTO_ARG%
+    
+    if defined CUSTOM_HTTPS_LIST (
+        set ARGS=%ARGS% --new ^
+--filter-tcp=80 %CUSTOM_HTTP_LIST% %CUSTOM_HTTP_ARG% --new ^
+--filter-tcp=443 %CUSTOM_HTTPS_LIST% %CUSTOM_HTTPS_ARG%
+    )
 
     if defined BLACK_LIST (
         set ARGS=%ARGS% --new ^
---filter-tcp=80 %BLACK_LIST% %BLACK_HTTP_ARG% --new ^
---filter-tcp=443 %BLACK_LIST% %BLACK_HTTPS_ARG%
+--filter-tcp=80 %BLACK_LIST% %EXCLUDE_HTTP_LIST% %BLACK_HTTP_ARG% --new ^
+--filter-tcp=443 %BLACK_LIST% %EXCLUDE_HTTPS_LIST% %BLACK_HTTPS_ARG%
     )
 exit /b 0
 
