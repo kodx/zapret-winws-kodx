@@ -4,7 +4,7 @@ C_YT_UDP=--dpi-desync=fake --dpi-desync-repeats=11
 C_YT_IP=--dpi-desync=fake --dpi-desync-repeats=11 --dpi-desync-fake-quic=%QUIC_GOOGLE%
 C_DIS_HTTP=--dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig
 C_DIS_HTTPS=--dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq
-C_DIS_UDP=--dpi-desync=fake --dpi-desync-udplen-increment=10 --dpi-desync-repeats=6 --dpi-desync-udplen-pattern=0xDAFAAAAC
+C_DIS_UDP=--filter-l7=discord,stun --dpi-desync=fake
 C_DIS_IP=--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-any-protocol --dpi-desync-cutoff=n4
 C_CUSTOM_HTTP=--dpi-desync=fake,multisplit --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig
 C_CUSTOM_HTTPS=--dpi-desync=fake,fakedsplit --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq

@@ -217,7 +217,7 @@ exit /b 0
 
 :ServiceStop
     echo Останавливаем \ Stopping %1 ...
-    sc stop %1
+    net stop %1
 exit /b 0
 
 :ServiceRestart

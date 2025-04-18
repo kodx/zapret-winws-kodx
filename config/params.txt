@@ -40,3 +40,4 @@ p[39]=--dpi-desync=fake,multisplit --dpi-desync-repeats=11 --dpi-desync-fooling=
 p[40]=--dpi-desync=fake,multisplit --dpi-desync-fooling=md5sig --dpi-desync-autottl
 p[41]=--dpi-desync=fake,multisplit --dpi-desync-split-seqovl=1 --dpi-desync-split-pos=midsld-1 --dpi-desync-fooling=md5sig,badseq --dpi-desync-fake-tls=%TLS_IANA% --dpi-desync-autottl
 p[42]=--dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d2 --dpi-desync-fake-unknown-udp=0x00
+p[43]=--filter-l7=discord,stun --dpi-desync=fake
