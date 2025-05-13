@@ -4,6 +4,7 @@
 *.bin binary
 *.cmd text eol=crlf
 *.txt text eol=crlf
+*.csv text eol=crlf
 .gitattributes export-ignore  
 .gitignore export-ignore
 cliff.toml export-ignore

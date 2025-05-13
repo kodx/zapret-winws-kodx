@@ -23,7 +23,7 @@ p[22]=--dpi-desync=fake,multisplit --dpi-desync-repeats=6 --dpi-desync-fooling=m
 p[23]=--dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d3 --dpi-desync-repeats=8
 p[24]=--dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --dpi-desync-fake-tls=%TLS_GOOGLE%
 p[25]=--dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq
-p[26]=--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=%QUIC_GOOGLE%
+p[26]=--dpi-desync=fake,multidisorder --dpi-desync-split-pos=midsld --dpi-desync-repeats=8 --dpi-desync-fooling=md5sig,badseq
 p[27]=--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls=%TLS_GOOGLE%
 p[28]=--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig
 p[29]=--dpi-desync=fake,multisplit --dpi-desync-ttl=1 --dpi-desync-autottl=5 --dpi-desync-repeats=6 --dpi-desync-fake-tls=%TLS_GOOGLE%
@@ -40,4 +40,14 @@ p[39]=--dpi-desync=fake,multisplit --dpi-desync-repeats=11 --dpi-desync-fooling=
 p[40]=--dpi-desync=fake,multisplit --dpi-desync-fooling=md5sig --dpi-desync-autottl
 p[41]=--dpi-desync=fake,multisplit --dpi-desync-split-seqovl=1 --dpi-desync-split-pos=midsld-1 --dpi-desync-fooling=md5sig,badseq --dpi-desync-fake-tls=%TLS_IANA% --dpi-desync-autottl
 p[42]=--dpi-desync=fake --dpi-desync-any-protocol --dpi-desync-cutoff=d2 --dpi-desync-fake-unknown-udp=0x00
-p[43]=--filter-l7=discord,stun --dpi-desync=fake
+p[43]=--filter-l7=discord,stun --dpi-desync=fake --dpi-desync-repeats=6
+p[44]=--dpi-desync=fake,multidisorder --dpi-desync-split-pos=midsld --dpi-desync-repeats=6 --dpi-desync-fooling=md5sig,badseq
+p[45]=--dpi-desync=fake,fakedsplit --dpi-desync-autottl=5 --dpi-desync-repeats=6 --dpi-desync-fooling=badseq --dpi-desync-fake-tls=%TLS_GOOGLE%
+p[46]=--filter-l3=ipv4 --dpi-desync=syndata
+p[47]=--dpi-desync=fake --dpi-desync-fooling=md5sig --dpi-desync-fake-tls-mod=rnd,rndsni,padencap
+p[48]=--dpi-desync=fake,multidisorder --dpi-desync-split-pos=1,midsld --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig --dpi-desync-fake-tls-mod=rnd,dupsid,sni=www.google.com
+p[49]=--dpi-desync=fake,multidisorder --dpi-desync-split-pos=1,midsld --dpi-desync-repeats=11 --dpi-desync-fooling=md5sig
+p[50]=--dpi-desync=fake,multisplit --dpi-desync-autottl=3 --dpi-desync-fooling=md5sig
+p[51]=--dpi-desync=fake --dpi-desync-ttl=4 --dpi-desync-fake-tls-mod=rnd,rndsni,padencap
+p[52]=--dpi-desync=fake --dpi-desync-repeats=8 --dpi-desync-fake-quic=%QUIC_GOOGLE%
+

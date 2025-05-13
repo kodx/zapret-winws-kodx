@@ -1,3 +1,21 @@
+:: zapret-winws-kodx, zapret config creation script
+:: Copyright (C) 2024  Yegor Bayev <kodx.org>
+
+:: This program is free software: you can redistribute it and/or modify
+:: it under the terms of the GNU Affero General Public License as published
+:: by the Free Software Foundation, either version 3 of the License, or
+:: (at your option) any later version.
+
+:: This program is distributed in the hope that it will be useful,
+:: but WITHOUT ANY WARRANTY; without even the implied warranty of
+:: MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+:: GNU Affero General Public License for more details.
+
+:: You should have received a copy of the GNU Affero General Public License
+:: along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+:: SPDX-License-Identifier: AGPL-3.0-or-later
+
 @echo off
 chcp 65001 >nul
 :: 65001 - UTF-8
@@ -7,95 +25,36 @@ SetLocal EnableDelayedExpansion
 set "PROG_NAME=Zapret-Winws-kodx"
 set "SRVNAME=zapret-winws-kodx"
 set "WINWS_BIN=%~dp0winws\winws.exe"
-set "FAKE_PATH=%~dp0..\files"
+set "PAYLOAD_PATH=%~dp0..\files"
 set "LIST_PATH=%~dp0..\lists"
 set "CONFIG_PATH=%~dp0..\config"
 
-for %%I in ("FAKE_PATH" "LIST_PATH" "CONFIG_PATH") do (
+set "BLACK_LIST_URL=https://p.thenewone.lol/domains-export.txt"
+set "EXCLUDE_LIST_ARR=YT_LIST DIS_LIST AUTO_LIST CUSTOM_LIST"
+
+rem convert relative to absolute path
+for %%I in ("PAYLOAD_PATH" "LIST_PATH" "CONFIG_PATH") do (
     call :SetPathVar %%I
 )
 
-set "TLS_GOOGLE="%FAKE_PATH%\tls_clienthello_www_google_com.bin""
-set "QUIC_GOOGLE="%FAKE_PATH%\quic_initial_www_google_com.bin""
-set "QUIC_VK="%FAKE_PATH%\quic_initial_vk_com.bin""
-set "QUIC_SHORT="%FAKE_PATH%\quic_short.bin""
-set "TLS_IANA="%FAKE_PATH%\tls_clienthello_iana_org.bin""
-
-set "YT_HTTP_LIST=%LIST_PATH%\list-youtube-https.txt"
-set "YT_HTTPS_LIST=%LIST_PATH%\list-youtube-https.txt"
-set "YT_UDP_LIST=%LIST_PATH%\list-youtube-udp.txt"
-set "YT_IP_IPSET=%LIST_PATH%\ipset-youtube-ip.txt"
-
-set "CUSTOM_LIST=%LIST_PATH%\list-custom.txt"
-
-set "DIS_HTTP_LIST=%LIST_PATH%\list-discord-https.txt"
-set "DIS_HTTPS_LIST=%LIST_PATH%\list-discord-https.txt"
-set "DIS_UDP_LIST=%LIST_PATH%\list-discord-udp.txt"
-set "DIS_IP_IPSET=%LIST_PATH%\ipset-discord-ip.txt"
-
-set "DIS_PORTSET=50000-50099"
-
-set "BLACK_LIST_URL=https://p.thenewone.lol/domains-export.txt"
-set "BLACK_LIST=%LIST_PATH%\list-blacklist.txt"
-
-set "AUTO_LIST=%LIST_PATH%\list-auto.txt"
-
 set "PARAMS_FILE=%CONFIG_PATH%\params.txt"
-set "VARIANTS_FILE=%CONFIG_PATH%\variants.txt"
-set "CONFIG_FILE=%CONFIG_PATH%\config.txt"
+set "VARIANTS_FILE=%CONFIG_PATH%\variants.csv"
+set "PAYLOADS_FILE=%CONFIG_PATH%\payloads.txt"
+set "LISTS_FILE=%CONFIG_PATH%\lists.txt"
 set "CUSTOM_SETTINGS_FILE=%CONFIG_PATH%\custom.txt"
 
-set ADDR_LIST="YT_HTTP_LIST" "YT_HTTPS_LIST" "YT_UDP_LIST" "YT_IP_IPSET" "DIS_HTTP_LIST" "DIS_HTTPS_LIST" "DIS_UDP_LIST" "DIS_IP_IPSET" "CUSTOM_LIST" "AUTO_LIST" "BLACK_LIST"
-set ARG_VAR_LIST="YT_HTTP" "YT_HTTPS" "YT_UDP" "YT_IP" "DIS_HTTP" "DIS_HTTPS" "DIS_UDP" "DIS_IP" "CUSTOM_HTTP" "CUSTOM_HTTPS" "AUTO" "BLACK_HTTP" "BLACK_HTTPS"
-
-set _ARG_VAR_LEN=0
-for %%I in (%ARG_VAR_LIST%) do (
-    set /a _ARG_VAR_LEN+=1
-)
-
-rem set addr vars from list
-for %%i in (%ADDR_LIST%) do (
-   call :SetAddrlistVar %%i
-)
-
-set "EXCLUDE_HTTP_LIST="
-set "EXCLUDE_HTTPS_LIST="
-
-call :SetExcludeList "HTTP" "YT_HTTP_LIST DIS_HTTP_LIST CUSTOM_LIST"
-call :SetExcludeList "HTTPS" "YT_HTTPS_LIST DIS_HTTPS_LIST CUSTOM_LIST"
-
-set "HTTP_LIST=%YT_TCP_LIST% %DIS_TCP_LIST% %CUSTOM_LIST%"
-
-rem read parameters from file
-set _P_LEN=0
-for /f "delims=" %%L in (%PARAMS_FILE%) do (
-    call set %%L
-    set /a _P_LEN+=1
-)
-
-rem read variants from file
-set _V_LEN=0
-for /f "delims=" %%L in (%VARIANTS_FILE%) do (
-    set %%L
-    set /a _V_LEN+=1
-)
-
-rem variants array length
-set /a _V_LEN=(_V_LEN/_ARG_VAR_LEN)
+rem load payload vars from file
+call :ReadVarsFromFile %PAYLOADS_FILE%
+rem set address list from lists file
+call :SetAddrlist %LISTS_FILE%
+rem set row count from variants file
+call :SetRowCount %VARIANTS_FILE%
 
 goto :main
 
 :UpdateRussiaBlacklist
     bitsadmin /transfer blacklist %BLACK_LIST_URL% "%BLACK_LIST%"
-exit /b 0
-
-rem %1 - param number
-:GetPVar
-    set "_result=!p[%1]!"
-exit /b 0
-
-:GetVar
-    set "_result=!%~1!"
+    call :SetAddrlist %LISTS_FILE%
 exit /b 0
 
 :GetFullPath
@@ -110,23 +69,37 @@ exit /b 0
     set "_result="
 exit /b 0
 
+rem Set address arguments from lists file
+:SetAddrlist
+    set "_IN_FILE=%1"
+    set "EXCLUDE_LIST="
+
+    for /f "tokens=1,2 delims==" %%a in (%_IN_FILE%) do (
+        rem check if %%a in EXCLUDE_LIST_ARR and add to EXCLUDE_LIST
+        if not "!EXCLUDE_LIST_ARR:%%a=!"=="!EXCLUDE_LIST_ARR!" (
+            call set _path=%%b
+            set "EXCLUDE_LIST=!EXCLUDE_LIST! --hostlist-exclude=!_path!"
+        )
+        call :SetAddrlistVar "%%a" "%%b"
+    )
+exit /b 0
+
 :SetAddrlistVar
-    set "_in_param=%~1"
-    set "_path=!%~1!"
+    set "_in_name=%~1"
+    set "_in_path=%~2"
     set "_file_type="
     set "_result="
-
-    if not defined _path (
+    if not defined _in_path (
         goto :SetAddrlistVarExit
     )
 
-    if "%_in_param:~-5%" == "_LIST" (
+    if "%_in_name:~-5%" == "_LIST" (
         set "_file_type=--hostlist"
     )
-    if "%_in_param:~-6%" == "_IPSET" (
+    if "%_in_name:~-6%" == "_IPSET" (
         set "_file_type=--ipset"
     )
-    if %_in_param% == AUTO_LIST (
+    if %_in_name% == AUTO_LIST (
         set "_file_type=--hostlist-auto"
     )
 
@@ -134,80 +107,145 @@ exit /b 0
         goto :SetAddrlistVarExit
     )
 
-    if not %_in_param% == AUTO_LIST (
-        if not exist %_path% (
+    if not %_in_name% == AUTO_LIST (
+        if not exist %_in_path% (
             goto :SetAddrlistVarExit
         )
     ) 
-    set "_result=%_file_type%="%_path%""
+    set "_result=%_file_type%="%_in_path%""
 
     :SetAddrlistVarExit
-    set %_in_param%=%_result%
+    set %_in_name%=%_result%
 exit /b 0
 
-:SetExcludeList
-    set "_IN_MODE=%~1"
-    set "_IN_LIST=%2"
-    set "_EX_L=EXCLUDE_%_IN_MODE%_LIST"
-    for %%A in (%_IN_LIST:"=%) do (
-        if defined %%~A (
-            call :GetVar "%_EX_L%"
-            set "!_EX_L!=!_result!--hostlist-exclude=!%%~A:~11! "
-        )
+rem Parse row %1
+:ParseRow
+    set "_IN_ROW_STR=%~1"
+    set _COLUMN_INDEX=0
+    for %%I in (%_IN_ROW_STR:,= %) do (
+        set /a "_COLUMN_INDEX+=1"
+        call :GetArgListVal !_COLUMN_INDEX!
+        set "_COL_NAME=!_result!"
+        set "PARAM_NUM=%%I"
+        call :GetPVar !PARAM_NUM!
+        set "!_COL_NAME!=!_result!"
+    )
+exit /b 0
+
+rem Read value from ARG_LIST array at given number %1
+:GetArgListVal
+    set "_result=!ARG_LIST[%~1]!"
+exit /b 0
+
+rem %1 - param number
+:GetPVar
+    set "_result=!p[%1]!"
+exit /b 0
+
+:ReadVarsFromFile
+    set "_IN_FILE=%~1"
+    for /f "delims=" %%L in (%_IN_FILE%) do (
+        call set %%L
     )
 exit /b 0
 
 :ReadCustomSettings
-    for /f "delims=" %%L in (%CUSTOM_SETTINGS_FILE%) do (
-        set %%L
-    )
-    for %%P in (%ARG_VAR_LIST%) do (
-        call set v[0].%%~P=!C_%%~P!
+    set "_IN_FILE=%1"
+    for /f "tokens=1,2 delims=|" %%a in (%_IN_FILE%) do (
+        call set %%a=%%b
     )
 exit /b 0
 
-rem %1 - variant number
-:GetConfig
-    set _V_NUM=%1
+rem Read argument names from config 
+:ReadArgumentNames
+    set "_IN_ARG_VARIANTS_FILE=%~1"
+    set /p _HEADER=<"%_IN_ARG_VARIANTS_FILE%"
+    set ARG_COUNT=0
+    for %%I in (%_HEADER:,= %) do (
+        set /a ARG_COUNT+=1
+        set "ARG_LIST[!ARG_COUNT!]=%%I"
+    )
+exit /b 0
 
-    if %_V_NUM% equ 0 (
-        if exist %CUSTOM_SETTINGS_FILE% (
-            call :ReadCustomSettings
-        )
-    )            
+:SetRowCount
+    set "_IN_ROW_VARIANTS_FILE=%~1"
+    set ROW_COUNT=0
+    for /f "delims=" %%L in (%_IN_ROW_VARIANTS_FILE%) do (
+        set /a ROW_COUNT+=1
+    )
+    rem substract header from ROW_COUNT
+    set /a ROW_COUNT-=1
+exit /b 0
 
-    for %%P in (%ARG_VAR_LIST%) do (
-        if %_V_NUM% equ 0 (
-            set _result=!v[%_V_NUM%].%%~P!
+rem Read variants from file %1, file is csv with header at first line
+rem Read parameters from file %2
+rem Read custom settings from %3
+rem %4 is selected variant, if 0 then read from custom settings file
+rem In result there will be vars like YT_HTTPS_ARG with param set
+:SetArgs
+    set "_IN_VARIANTS_FILE=%1"
+    set "_IN_PARAMS_FILE=%2"
+    set "_IN_SETTINGS_FILE=%3"
+    set "_IN_CHOICE_NUM=%~4"
+    
+    call :ReadArgumentNames %_IN_VARIANTS_FILE%
+
+    if %_IN_CHOICE_NUM% equ 0 (
+        if exist %_IN_SETTINGS_FILE% (
+            call :ReadCustomSettings %_IN_SETTINGS_FILE%
         ) else (
-            set "PARAM_NUM=!v[%_V_NUM%].%%~P!"
-            call :GetPVar !PARAM_NUM!
-        )            
-        set "%%~P_ARG=!_result!"
+            echo."||| ОШИБКА / ERROR |||"
+            echo.Не найден файл пользовательских настроек %CUSTOM_SETTINGS_FILE%.
+            echo.
+            echo.Custom settings file %CUSTOM_SETTINGS_FILE% doesn't exists.
+            goto SetArgsExit
+        )
+        goto :SetArgsStr
+    )
+    
+    call :SetRowCount %_IN_VARIANTS_FILE%
+    call :ReadVarsFromFile %_IN_PARAMS_FILE%
+
+    rem Read one selected row from variants file
+    for /f "skip=%_IN_CHOICE_NUM% usebackq delims=" %%R in ("%_IN_VARIANTS_FILE%") do (
+        set "_ARG_ROW=%%R"
+        goto :SetArgsRowFindEnd
+    )
+    :SetArgsRowFindEnd
+
+    call :ParseRow "%_ARG_ROW%"
+
+    :SetArgsStr
+    set ARGS=--wf-tcp=80,443 --wf-udp=443,50000-50099 ^
+--filter-tcp=80 %YT_LIST% %YT_HTTP% --new ^
+--filter-tcp=443 %YT_LIST% %YT_HTTPS% --new ^
+--filter-udp=443 %YT_LIST% %YT_UDP% --new ^
+--filter-tcp=80 %DIS_LIST% %DIS_HTTP% --new ^
+--filter-tcp=443 %DIS_LIST% %DIS_HTTPS% --new ^
+--filter-udp=443 %DIS_LIST% %DIS_UDP% --new ^
+--filter-udp=50000-50099 %DIS_IP% --new ^
+--filter-tcp=443 %AUTO_LIST% %AUTO%
+    
+    if defined CF_IPSET (
+        set ARGS=%ARGS% --new ^
+--filter-tcp=80 %CF_IPSET% %CF_HTTP% --new ^
+--filter-tcp=443 %CF_IPSET% %CF_HTTPS% --new ^
+--filter-udp=443 %CF_IPSET% %CF_UDP%
     )
 
-    set ARGS=--wf-tcp=80,443 --wf-udp=443,%DIS_PORTSET% ^
---filter-tcp=80 %YT_HTTP_LIST% %YT_HTTP_ARG% --new ^
---filter-tcp=443 %YT_HTTPS_LIST% %YT_HTTPS_ARG% --new ^
---filter-udp=443 %YT_UDP_LIST% %YT_UDP_ARG% --new ^
---filter-tcp=443 %YT_IP_IPSET% %YT_IP_ARG% --new ^
---filter-tcp=80 %DIS_HTTP_LIST% %DIS_HTTP_ARG% --new ^
---filter-tcp=443 %DIS_HTTPS_LIST% %DIS_HTTPS_ARG% --new ^
---filter-udp=443 %DIS_UDP_LIST% %DIS_UDP_ARG% --new ^
---filter-udp=%DIS_PORTSET% %DIS_IP_IPSET% %DIS_IP_ARG% --new ^
---filter-tcp=443 %AUTO_LIST% %AUTO_ARG%
-    
-    if defined CUSTOM_HTTPS_LIST (
+    if defined CUSTOM_LIST (
         set ARGS=%ARGS% --new ^
---filter-tcp=80 %CUSTOM_HTTP_LIST% %CUSTOM_HTTP_ARG% --new ^
---filter-tcp=443 %CUSTOM_HTTPS_LIST% %CUSTOM_HTTPS_ARG%
+--filter-tcp=80 %CUSTOM_LIST% %CUSTOM_HTTP% --new ^
+--filter-tcp=443 %CUSTOM_LIST% %CUSTOM_HTTPS%
     )
 
     if defined BLACK_LIST (
         set ARGS=%ARGS% --new ^
---filter-tcp=80 %BLACK_LIST% %EXCLUDE_HTTP_LIST% %BLACK_HTTP_ARG% --new ^
---filter-tcp=443 %BLACK_LIST% %EXCLUDE_HTTPS_LIST% %BLACK_HTTPS_ARG%
+--filter-tcp=80 %BLACK_LIST% %EXCLUDE_LIST% %BLACK_HTTP% --new ^
+--filter-tcp=443 %BLACK_LIST% %EXCLUDE_LIST% %BLACK_HTTPS%
     )
+
+    :SetArgsExit
 exit /b 0
 
 :ServiceStart
@@ -266,13 +304,13 @@ exit /b 0
     echo %NAME% - Установка/Обновление настроек │ Setup-Config update
     echo -----------------------------------------------------------------
     echo Выберите вариант настроек: 
-    echo    от 1 до %_V_LEN% - один из предустановленных вариантов
+    echo    от 1 до %ROW_COUNT% - один из предустановленных вариантов
     echo    0 - загрузить собственные настройки из файла 'custom.txt'
     echo    -1 - возвращение назад в меню
     echo после ввода нажмите Enter, по умолчанию выбор -1
     echo.
     echo Select a customization option: 
-    echo    1 to %_V_LEN% - one of the preset options
+    echo    1 to %ROW_COUNT% - one of the preset options
     echo    0 - load your own customizations from the 'custom.txt' file
     echo    -1 - back to the main menu
     echo after entering press Enter, default selection is -1
@@ -285,8 +323,8 @@ exit /b 0
     )
 
     if %_V_CHOICE% geq 0 (
-        if %_V_CHOICE% leq %_V_LEN% (
-            call :GetConfig !_V_CHOICE!
+        if %_V_CHOICE% leq %ROW_COUNT% (
+            call :SetArgs %VARIANTS_FILE% %PARAMS_FILE% %CUSTOM_SETTINGS_FILE% !_V_CHOICE!
             goto ChooseVariantEnd
         )
         goto ChooseVariantErr
@@ -294,9 +332,9 @@ exit /b 0
 
     :ChooseVariantErr
     echo."||| ОШИБКА / ERROR |||"
-    echo Введённое '%_V_CHOICE%' выходит за диапазон от 0 до %_V_LEN% или -1.
+    echo Введённое '%_V_CHOICE%' выходит за диапазон от 0 до %ROW_COUNT% или -1.
     echo.
-    echo The entered '%_V_CHOICE%' is outside the range of 0 to %_V_LEN% or -1.
+    echo The entered '%_V_CHOICE%' is outside the range of 0 to %ROW_COUNT% or -1.
 
     goto ChooseVariantStart
 

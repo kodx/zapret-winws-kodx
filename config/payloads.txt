@@ -1,0 +1,5 @@
+TLS_GOOGLE="%PAYLOAD_PATH%\tls_clienthello_www_google_com.bin"
+QUIC_GOOGLE="%PAYLOAD_PATH%\quic_initial_www_google_com.bin"
+QUIC_VK="%PAYLOAD_PATH%\quic_initial_vk_com.bin"
+QUIC_SHORT="%PAYLOAD_PATH%\quic_short.bin"
+TLS_IANA="%PAYLOAD_PATH%\tls_clienthello_iana_org.bin"
