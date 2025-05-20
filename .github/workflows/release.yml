@@ -1,0 +1,50 @@
+name: Pack release
+on:
+  push:
+    tags:
+    - "v*"
+  workflow_dispatch:
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set vars
+        id: vars
+        run: |
+          CURRENT_VERSION=$(git describe --tags --abbrev=0)
+          REPO_NAME=$(echo '${{ github.repository }}' | cut -d '/' -f 2)
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "ARCHIVE_NAME=${REPO_NAME}-${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "ARCHIVE_PREFIX=${REPO_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Make archive
+        uses: qmonnet/git-archive-all-action@v1
+        with:
+          output-files: ${{ steps.vars.outputs.ARCHIVE_NAME }}.zip
+          prefix: ${{ steps.vars.outputs.ARCHIVE_PREFIX }}
+      
+      - name: Generate a changelog
+        uses: orhun/git-cliff-action@v4
+        id: git-cliff
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: CHANGES.md
+          GITHUB_REPO: ${{ github.repository }}
+      
+      - name: Create draft release and add artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.vars.outputs.ARCHIVE_NAME }}.zip
+          name: ${{ steps.vars.outputs.CURRENT_VERSION }}
+          tag_name: ${{ steps.vars.outputs.CURRENT_VERSION }}
+          body: ${{ steps.git-cliff.outputs.content }}

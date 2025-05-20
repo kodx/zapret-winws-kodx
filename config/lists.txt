@@ -1,0 +1,6 @@
+YT_LIST=%LIST_PATH%\list-youtube.txt
+DIS_LIST=%LIST_PATH%\list-discord.txt
+CF_IPSET=%LIST_PATH%\ipset-cloudflare.txt
+CUSTOM_LIST=%LIST_PATH%\list-custom.txt
+BLACK_LIST=%LIST_PATH%\list-blacklist.txt
+AUTO_LIST=%LIST_PATH%\list-auto.txt
