@@ -240,12 +240,12 @@ rem In result there will be vars like YT_HTTPS_ARG with param set
 
     if defined BLACK_LIST (
         set ARGS=%ARGS% --new ^
---filter-tcp=80 %BLACK_LIST% %EXCLUDE_LIST% %BLACK_HTTP% --new ^
---filter-tcp=443 %BLACK_LIST% %EXCLUDE_LIST% %BLACK_HTTPS%
+--filter-tcp=80 %BLACK_LIST% %BLACK_HTTP% --new ^
+--filter-tcp=443 %BLACK_LIST% %BLACK_HTTPS%
     )
 
     set ARGS=%ARGS% --new ^
---filter-tcp=443 %AUTO_LIST% %EXCLUDE_LIST% %AUTO%
+--filter-tcp=443 %AUTO_LIST% %AUTO%
 
     :SetArgsExit
 exit /b 0
