@@ -111,7 +111,7 @@ exit /b 0
         if not exist %_in_path% (
             goto :SetAddrlistVarExit
         )
-    ) 
+    )
     set "_result=%_file_type%="%_in_path%""
 
     :SetAddrlistVarExit
@@ -156,7 +156,7 @@ exit /b 0
     )
 exit /b 0
 
-rem Read argument names from config 
+rem Read argument names from config
 :ReadArgumentNames
     set "_IN_ARG_VARIANTS_FILE=%~1"
     set /p _HEADER=<"%_IN_ARG_VARIANTS_FILE%"
@@ -187,7 +187,7 @@ rem In result there will be vars like YT_HTTPS_ARG with param set
     set "_IN_PARAMS_FILE=%2"
     set "_IN_SETTINGS_FILE=%3"
     set "_IN_CHOICE_NUM=%~4"
-    
+
     call :ReadArgumentNames %_IN_VARIANTS_FILE%
 
     if %_IN_CHOICE_NUM% equ 0 (
@@ -202,7 +202,7 @@ rem In result there will be vars like YT_HTTPS_ARG with param set
         )
         goto :SetArgsStr
     )
-    
+
     call :SetRowCount %_IN_VARIANTS_FILE%
     call :ReadVarsFromFile %_IN_PARAMS_FILE%
 
@@ -224,7 +224,7 @@ rem In result there will be vars like YT_HTTPS_ARG with param set
 --filter-tcp=443 %DIS_LIST% %DIS_HTTPS% --new ^
 --filter-udp=443 %DIS_LIST% %DIS_UDP% --new ^
 --filter-udp=50000-50099 %DIS_IP%
-    
+
     if defined CF_IPSET (
         set ARGS=%ARGS% --new ^
 --filter-tcp=80 %CF_IPSET% %CF_HTTP% --new ^
@@ -305,13 +305,13 @@ exit /b 0
     echo -----------------------------------------------------------------
     echo %NAME% - Установка/Обновление настроек │ Setup-Config update
     echo -----------------------------------------------------------------
-    echo Выберите вариант настроек: 
+    echo Выберите вариант настроек:
     echo    от 1 до %ROW_COUNT% - один из предустановленных вариантов
     echo    0 - загрузить собственные настройки из файла 'custom.txt'
     echo    -1 - возвращение назад в меню
     echo после ввода нажмите Enter, по умолчанию выбор -1
     echo.
-    echo Select a customization option: 
+    echo Select a customization option:
     echo    1 to %ROW_COUNT% - one of the preset options
     echo    0 - load your own customizations from the 'custom.txt' file
     echo    -1 - back to the main menu
@@ -358,7 +358,7 @@ exit /b 0
     echo 6. Перезапуск службы                 │ Restart service
     echo 7. Удаление службы                   │ Delete service
     echo 8. Очистка от похожих программ       │ Cleanup from similar programs
-    echo 9. Выход                             │ Exit 
+    echo 9. Выход                             │ Exit
     echo.
     set op=
     choice /c 123456789 /n /m "Ваш выбор: │ Choose number: "
