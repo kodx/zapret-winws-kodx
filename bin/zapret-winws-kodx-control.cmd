@@ -18,7 +18,7 @@
 
 @echo off
 chcp 65001 >nul
-:: 65001 - UTF-8
+@REM 65001 = UTF-8
 
 SetLocal EnableDelayedExpansion
 
@@ -30,9 +30,8 @@ set "LIST_PATH=%~dp0..\lists"
 set "CONFIG_PATH=%~dp0..\config"
 
 set "BLACK_LIST_URL=https://p.thenewone.lol/domains-export.txt"
-set "EXCLUDE_LIST_ARR=YT_LIST DIS_LIST AUTO_LIST CUSTOM_LIST"
 
-rem convert relative to absolute path
+@REM convert relative to absolute path
 for %%I in ("PAYLOAD_PATH" "LIST_PATH" "CONFIG_PATH") do (
     call :SetPathVar %%I
 )
@@ -43,11 +42,11 @@ set "PAYLOADS_FILE=%CONFIG_PATH%\payloads.txt"
 set "LISTS_FILE=%CONFIG_PATH%\lists.txt"
 set "CUSTOM_SETTINGS_FILE=%CONFIG_PATH%\custom.txt"
 
-rem load payload vars from file
+@REM load payload vars from file
 call :ReadVarsFromFile %PAYLOADS_FILE%
-rem set address list from lists file
+@REM set address list from lists file
 call :SetAddrlist %LISTS_FILE%
-rem set row count from variants file
+@REM set row count from variants file
 call :SetRowCount %VARIANTS_FILE%
 
 goto :main
@@ -69,17 +68,11 @@ exit /b 0
     set "_result="
 exit /b 0
 
-rem Set address arguments from lists file
+@REM Set address arguments from lists file
 :SetAddrlist
     set "_IN_FILE=%1"
-    set "EXCLUDE_LIST="
 
     for /f "tokens=1,2 delims==" %%a in (%_IN_FILE%) do (
-        rem check if %%a in EXCLUDE_LIST_ARR and add to EXCLUDE_LIST
-        if not "!EXCLUDE_LIST_ARR:%%a=!"=="!EXCLUDE_LIST_ARR!" (
-            call set _path=%%b
-            set "EXCLUDE_LIST=!EXCLUDE_LIST! --hostlist-exclude=!_path!"
-        )
         call :SetAddrlistVar "%%a" "%%b"
     )
 exit /b 0
@@ -93,13 +86,18 @@ exit /b 0
         goto :SetAddrlistVarExit
     )
 
+    @REM if ends with "_LIST"
     if "%_in_name:~-5%" == "_LIST" (
         set "_file_type=--hostlist"
     )
+
+    @REM if ends with "_IPSET"
     if "%_in_name:~-6%" == "_IPSET" (
         set "_file_type=--ipset"
     )
-    if %_in_name% == AUTO_LIST (
+
+    @REM if starts with "AUTO_"
+    if "%_in_name:~0,5%" == "AUTO_" (
         set "_file_type=--hostlist-auto"
     )
 
@@ -118,7 +116,7 @@ exit /b 0
     set %_in_name%=%_result%
 exit /b 0
 
-rem Parse row %1
+@REM Parse row %1
 :ParseRow
     set "_IN_ROW_STR=%~1"
     set _COLUMN_INDEX=0
@@ -132,12 +130,12 @@ rem Parse row %1
     )
 exit /b 0
 
-rem Read value from ARG_LIST array at given number %1
+@REM Read value from ARG_LIST array at given number %1
 :GetArgListVal
     set "_result=!ARG_LIST[%~1]!"
 exit /b 0
 
-rem %1 - param number
+@REM %1 - param number
 :GetPVar
     set "_result=!p[%1]!"
 exit /b 0
@@ -156,7 +154,7 @@ exit /b 0
     )
 exit /b 0
 
-rem Read argument names from config
+@REM Read argument names from config
 :ReadArgumentNames
     set "_IN_ARG_VARIANTS_FILE=%~1"
     set /p _HEADER=<"%_IN_ARG_VARIANTS_FILE%"
@@ -177,11 +175,11 @@ exit /b 0
     set /a ROW_COUNT-=1
 exit /b 0
 
-rem Read variants from file %1, file is csv with header at first line
-rem Read parameters from file %2
-rem Read custom settings from %3
-rem %4 is selected variant, if 0 then read from custom settings file
-rem In result there will be vars like YT_HTTPS_ARG with param set
+@REM Read variants from file %1, file is csv with header at first line
+@REM Read parameters from file %2
+@REM Read custom settings from %3
+@REM %4 is selected variant, if 0 then read from custom settings file
+@REM In result there will be vars like YT_HTTPS_ARG with param set
 :SetArgs
     set "_IN_VARIANTS_FILE=%1"
     set "_IN_PARAMS_FILE=%2"
@@ -206,7 +204,7 @@ rem In result there will be vars like YT_HTTPS_ARG with param set
     call :SetRowCount %_IN_VARIANTS_FILE%
     call :ReadVarsFromFile %_IN_PARAMS_FILE%
 
-    rem Read one selected row from variants file
+    @REM Read one selected row from variants file
     for /f "skip=%_IN_CHOICE_NUM% usebackq delims=" %%R in ("%_IN_VARIANTS_FILE%") do (
         set "_ARG_ROW=%%R"
         goto :SetArgsRowFindEnd
@@ -223,7 +221,7 @@ rem In result there will be vars like YT_HTTPS_ARG with param set
 --filter-tcp=80 %DIS_LIST% %DIS_HTTP% --new ^
 --filter-tcp=443 %DIS_LIST% %DIS_HTTPS% --new ^
 --filter-udp=443 %DIS_LIST% %DIS_UDP% --new ^
---filter-udp=50000-50099 %DIS_IP%
+--filter-udp=50000-50099 %DIS_PORT%
 
     if defined CF_IPSET (
         set ARGS=%ARGS% --new ^
@@ -235,7 +233,15 @@ rem In result there will be vars like YT_HTTPS_ARG with param set
     if defined CUSTOM_LIST (
         set ARGS=%ARGS% --new ^
 --filter-tcp=80 %CUSTOM_LIST% %CUSTOM_HTTP% --new ^
---filter-tcp=443 %CUSTOM_LIST% %CUSTOM_HTTPS%
+--filter-tcp=443 %CUSTOM_LIST% %CUSTOM_HTTPS% --new ^
+--filter-udp=443 %CUSTOM_LIST% %CUSTOM_UDP%
+    )
+
+    if defined CUSTOM_IPSET (
+        set ARGS=%ARGS% --new ^
+--filter-tcp=80 %CUSTOM_IPSET% %CUSTOM_HTTP% --new ^
+--filter-tcp=443 %CUSTOM_IPSET% %CUSTOM_HTTPS% --new ^
+--filter-udp=443 %CUSTOM_IPSET% %CUSTOM_UDP%
     )
 
     if defined BLACK_LIST (
@@ -245,7 +251,9 @@ rem In result there will be vars like YT_HTTPS_ARG with param set
     )
 
     set ARGS=%ARGS% --new ^
---filter-tcp=443 %AUTO_LIST% %AUTO%
+--filter-tcp=80 %AUTO_LIST% %AUTO_HTTP% --new ^
+--filter-tcp=443 %AUTO_LIST% %AUTO_HTTPS% --new ^
+--filter-udp=443 %AUTO_LIST% %AUTO_UDP%
 
     :SetArgsExit
 exit /b 0
