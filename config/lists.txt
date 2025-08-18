@@ -5,3 +5,4 @@ CUSTOM_LIST=%LIST_PATH%\list-custom.txt
 CUSTOM_IPSET=%LIST_PATH%\ipset-custom.txt
 BLACK_LIST=%LIST_PATH%\list-blacklist.txt
 AUTO_LIST=%LIST_PATH%\list-auto.txt
+EXCLUDE_LIST=%LIST_PATH%\list-exclude.txt

@@ -101,6 +101,10 @@ exit /b 0
         set "_file_type=--hostlist-auto"
     )
 
+    if "%_in_name%" == "EXCLUDE_LIST" (
+        set "_file_type=--hostlist-exclude"
+    )
+
     if not defined _file_type (
         goto :SetAddrlistVarExit
     )
@@ -251,9 +255,9 @@ exit /b 0
     )
 
     set ARGS=%ARGS% --new ^
---filter-tcp=80 %AUTO_LIST% %AUTO_HTTP% --new ^
---filter-tcp=443 %AUTO_LIST% %AUTO_HTTPS% --new ^
---filter-udp=443 %AUTO_LIST% %AUTO_UDP%
+--filter-tcp=80 %AUTO_LIST% %EXCLUDE_LIST% %AUTO_HTTP% --new ^
+--filter-tcp=443 %AUTO_LIST% %EXCLUDE_LIST% %AUTO_HTTPS% --new ^
+--filter-udp=443 %AUTO_LIST% %EXCLUDE_LIST% %AUTO_UDP%
 
     :SetArgsExit
 exit /b 0
