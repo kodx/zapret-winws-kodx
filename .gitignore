@@ -1,6 +1,8 @@
-lists/list-custom.txt
 lists/ipset-cloudflare.txt
 lists/ipset-custom.txt
+lists/ipset-game.txt
+lists/list-custom.txt
+lists/list-game.txt
 lists/list-auto.txt
 lists/list-blacklist.txt
 lists/list-exclude.txt

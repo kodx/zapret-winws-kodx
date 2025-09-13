@@ -248,6 +248,21 @@ exit /b 0
 --filter-udp=443 %CUSTOM_IPSET% %CUSTOM_UDP%
     )
 
+    if defined GAME_LIST (
+        set ARGS=%ARGS% --new ^
+--filter-tcp=80 %GAME_LIST% %GAME_HTTP% --new ^
+--filter-tcp=443 %GAME_LIST% %GAME_HTTPS% --new ^
+--filter-udp=443 %GAME_LIST% %GAME_UDP%
+    )
+
+    if defined GAME_IPSET (
+        set ARGS=%ARGS% --new ^
+--filter-tcp=80 %GAME_IPSET% %GAME_HTTP% --new ^
+--filter-tcp=443 %GAME_IPSET% %GAME_HTTPS% --new ^
+--filter-udp=443 %GAME_IPSET% %GAME_UDP% --new ^
+--filter-tcp=2099 %GAME_IPSET% %GAME_PORT%
+    )
+
     if defined BLACK_LIST (
         set ARGS=%ARGS% --new ^
 --filter-tcp=80 %BLACK_LIST% %BLACK_HTTP% --new ^
