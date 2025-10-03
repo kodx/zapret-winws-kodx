@@ -56,4 +56,4 @@ p[55]=--dpi-desync=fake,multisplit --dpi-desync-split-pos=method+2 --dpi-desync-
 p[56]=--dpi-desync=fakeddisorder --dpi-desync-ttl=1 --dpi-desync-autottl=5 --dpi-desync-split-pos=midsld
 p[57]=--dpi-desync=fake,split2 --dpi-desync-autottl=2 --dpi-desync-fooling=md5sig
 p[58]=--dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=10 --dpi-desync-any-protocol=1 --dpi-desync-fake-unknown-udp=%QUIC_GOOGLE% --dpi-desync-cutoff=n2
-
+p[59]=--dpi-desync=multisplit --dpi-desync-repeats=2 --dpi-desync-split-seqovl=681 --dpi-desync-split-pos=1 --dpi-desync-split-seqovl-pattern=%TLS_GOOGLE%

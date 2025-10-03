@@ -225,7 +225,7 @@ exit /b 0
 --filter-tcp=80 %DIS_LIST% %DIS_HTTP% --new ^
 --filter-tcp=443 %DIS_LIST% %DIS_HTTPS% --new ^
 --filter-udp=443 %DIS_LIST% %DIS_UDP% --new ^
---filter-udp=50000-50099 %DIS_PORT%
+--filter-udp=1400,596-599,50000-50099 %DIS_PORT%
 
     if defined CF_IPSET (
         set ARGS=%ARGS% --new ^
