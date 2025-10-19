@@ -380,15 +380,12 @@ exit /b 0
     echo 1. Установка/Обновление службы       │ Setup/Update service
     echo 2. Загрузка/Обновление списка сайтов │ Setup/Update russia blacklist
     echo 3. Пробный запуск в окне             │ Test run in separate window
-    echo 4. Запуск службы                     │ Start service
-    echo 5. Остановка службы                  │ Stop service
-    echo 6. Перезапуск службы                 │ Restart service
-    echo 7. Удаление службы                   │ Delete service
-    echo 8. Очистка от похожих программ       │ Cleanup from similar programs
-    echo 9. Выход                             │ Exit
+    echo 4. Удаление службы                   │ Delete service
+    echo 5. Очистка от похожих программ       │ Cleanup from similar programs
+    echo 6. Выход                             │ Exit
     echo.
     set op=
-    choice /c 123456789 /n /m "Ваш выбор: │ Choose number: "
+    choice /c 123456 /n /m "Ваш выбор: │ Choose number: "
     set op=%errorlevel%
 
     if %op%==1 (
@@ -403,21 +400,12 @@ exit /b 0
         call :RunExe
     )
     if %op%==4 (
-        call :ServiceStart %SRVNAME%
-    )
-    if %op%==5 (
-        call :ServiceStop %SRVNAME%
-    )
-    if %op%==6 (
-        call :ServiceRestart %SRVNAME%
-    )
-    if %op%==7 (
         call :ServiceCleanup %SRVNAME%
     )
-    if %op%==8 (
+    if %op%==5 (
         call :ServiceCleanupOthers
     )
-    if %op%==9 (
+    if %op%==6 (
         goto end
     )
     goto :MainMenu
