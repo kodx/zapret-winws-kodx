@@ -43,6 +43,7 @@ set "WINWS_BIN=%~dp0bin\winws\winws.exe"
 set "PAYLOAD_PATH=%~dp0payloads"
 set "LIST_PATH=%~dp0lists"
 set "CONFIG_PATH=%~dp0config"
+set "WINDIVERT_FILTER_PATH=%CONFIG_PATH%\windivert.filter"
 
 set "BLACK_LIST_URL=https://p.thenewone.lol/domains-export.txt"
 
@@ -59,6 +60,12 @@ set "PAYLOADS_FILE=%CONFIG_PATH%\payloads.txt"
 set "LISTS_FILE=%CONFIG_PATH%\lists.txt"
 set "CUSTOM_SETTINGS_FILE=%CONFIG_PATH%\custom.txt"
 
+:: windivert filter files
+set "WINDIVERT_DISCORD_MEDIA_FILE=%WINDIVERT_FILTER_PATH%\windivert_part.discord_media.txt"
+set "WINDIVERT_QUIC_INITIAL_FILE=%WINDIVERT_FILTER_PATH%\windivert_part.quic_initial_ietf.txt"
+set "WINDIVERT_STUN_FILE=%WINDIVERT_FILTER_PATH%\windivert_part.stun.txt"
+set "WINDIVERT_WIREGUARD_FILE=%WINDIVERT_FILTER_PATH%\windivert_part.wireguard.txt"
+
 :: load payload vars from file
 call :ReadVarsFromFile "%PAYLOADS_FILE%"
 :: set address list from lists file
@@ -66,7 +73,7 @@ call :SetAddrlist "%LISTS_FILE%"
 :: set row count from variants file
 call :SetRowCount "%VARIANTS_FILE%"
 
-goto :main
+goto main
 
 :UpdateRussiaBlacklist
     bitsadmin /transfer blacklist %BLACK_LIST_URL% "%BLACK_LIST%"
@@ -106,7 +113,7 @@ exit /b 0
     set "_result="
 
     if not defined _in_path (
-        goto :SetAddrlistVarExit
+        goto SetAddrlistVarExit
     )
 
     :: if ends with "_LIST"
@@ -129,12 +136,12 @@ exit /b 0
     )
 
     if not defined _file_type (
-        goto :SetAddrlistVarExit
+        goto SetAddrlistVarExit
     )
 
     if not %_in_name% == AUTO_LIST (
         if not exist %_in_path% (
-            goto :SetAddrlistVarExit
+            goto SetAddrlistVarExit
         )
     )
     set "_result=%_file_type%=%_in_path%"
@@ -229,7 +236,7 @@ exit /b 0
             echo.Custom settings file %CUSTOM_SETTINGS_FILE% doesn't exists.
             goto SetArgsExit
         )
-        goto :SetArgsStr
+        goto SetArgsStr
     )
 
     call :SetRowCount %_IN_VARIANTS_FILE%
@@ -238,68 +245,47 @@ exit /b 0
     :: Read one selected row from variants file
     for /f "skip=%_IN_CHOICE_NUM% usebackq delims=" %%R in (`type !_IN_VARIANTS_FILE!`) do (
         set "_ARG_ROW=%%R"
-        goto :SetArgsRowFindEnd
+        goto SetArgsRowFindEnd
     )
     :SetArgsRowFindEnd
 
     call :ParseRow "%_ARG_ROW%"
 
     :SetArgsStr
-    set ARGS=--wf-tcp=80,443 --wf-udp=443,596-599,1400,50000-50099 ^
+
+    set ARGS=--wf-tcp=80,443,2053,2083,2087,2096,8443 --wf-udp=19294-19344,50000-50100 ^
+--wf-raw-part=@"%WINDIVERT_QUIC_INITIAL_FILE%" ^
+--wf-raw-part=@"%WINDIVERT_WIREGUARD_FILE%" ^
 --filter-tcp=80 %YT_LIST% %YT_HTTP% --new ^
 --filter-tcp=443 %YT_LIST% %YT_HTTPS% --new ^
---filter-udp=443 %YT_LIST% %YT_UDP% --new ^
+--filter-l7=quic %YT_LIST% %YT_QUIC% --new ^
 --filter-tcp=80 %DIS_LIST% %DIS_HTTP% --new ^
 --filter-tcp=443 %DIS_LIST% %DIS_HTTPS% --new ^
---filter-udp=443 %DIS_LIST% %DIS_UDP% --new ^
---filter-udp=596-599,1400,50000-50099 %DIS_PORT%
+--filter-l7=quic %DIS_LIST% %DIS_QUIC% --new ^
+--filter-udp=19294-19344,50000-50100 %DIS_UDP% --new ^
+--filter-tcp=2053,2083,2087,2096,8443 --hostlist-domains=discord.media %DIS_MEDIA%
 
     if defined CF_IPSET (
         set ARGS=%ARGS% --new ^
 --filter-tcp=80 %CF_IPSET% %CF_HTTP% --new ^
 --filter-tcp=443 %CF_IPSET% %CF_HTTPS% --new ^
---filter-udp=443 %CF_IPSET% %CF_UDP%
+--filter-l7=quic %CF_IPSET% %CF_QUIC%
     )
 
-    if defined CUSTOM_LIST (
+    set "CUSTOM_LIST=%CUSTOM_LIST% %CUSTOM_IPSET% %BLACK_LIST%"
+    :: remove spaces
+    set "TMP_STR=%CUSTOM_LIST: =%"
+    if defined TMP_STR (
         set ARGS=%ARGS% --new ^
 --filter-tcp=80 %CUSTOM_LIST% %CUSTOM_HTTP% --new ^
 --filter-tcp=443 %CUSTOM_LIST% %CUSTOM_HTTPS% --new ^
---filter-udp=443 %CUSTOM_LIST% %CUSTOM_UDP%
-    )
-
-    if defined CUSTOM_IPSET (
-        set ARGS=%ARGS% --new ^
---filter-tcp=80 %CUSTOM_IPSET% %CUSTOM_HTTP% --new ^
---filter-tcp=443 %CUSTOM_IPSET% %CUSTOM_HTTPS% --new ^
---filter-udp=443 %CUSTOM_IPSET% %CUSTOM_UDP%
-    )
-
-    if defined GAME_LIST (
-        set ARGS=%ARGS% --new ^
---filter-tcp=80 %GAME_LIST% %GAME_HTTP% --new ^
---filter-tcp=443 %GAME_LIST% %GAME_HTTPS% --new ^
---filter-udp=443 %GAME_LIST% %GAME_UDP%
-    )
-
-    if defined GAME_IPSET (
-        set ARGS=%ARGS% --new ^
---filter-tcp=80 %GAME_IPSET% %GAME_HTTP% --new ^
---filter-tcp=443 %GAME_IPSET% %GAME_HTTPS% --new ^
---filter-udp=443 %GAME_IPSET% %GAME_UDP% --new ^
---filter-tcp=2099 %GAME_IPSET% %GAME_PORT%
-    )
-
-    if defined BLACK_LIST (
-        set ARGS=%ARGS% --new ^
---filter-tcp=80 %BLACK_LIST% %BLACK_HTTP% --new ^
---filter-tcp=443 %BLACK_LIST% %BLACK_HTTPS%
+--filter-l7=quic %CUSTOM_LIST% %CUSTOM_QUIC%
     )
 
     set ARGS=%ARGS% --new ^
---filter-tcp=80 %AUTO_LIST% %EXCLUDE_LIST% %AUTO_HTTP% --new ^
---filter-tcp=443 %AUTO_LIST% %EXCLUDE_LIST% %AUTO_HTTPS% --new ^
---filter-udp=443 %AUTO_LIST% %EXCLUDE_LIST% %AUTO_UDP%
+--filter-tcp=80 %AUTO_LIST% %EXCLUDE_LIST% %CUSTOM_HTTP% --new ^
+--filter-tcp=443 %AUTO_LIST% %EXCLUDE_LIST% %CUSTOM_HTTPS% --new ^
+--filter-l7=quic %AUTO_LIST% %EXCLUDE_LIST% %CUSTOM_QUIC%
 
     :SetArgsExit
 exit /b 0
@@ -314,7 +300,7 @@ exit /b 0
     sc query "%_svc_name%" >nul 2>&1
     if errorlevel 1 (
         echo Служба "%_svc_name%" не найдена \ Service "%_svc_name%" not found
-        exit /b 0
+        goto ServiceControlExit
     )
 
     if %_svc_control_cmd%==start (
@@ -337,13 +323,13 @@ exit /b 0
         echo Удаляем \ Deleting "%_svc_name%" ...
         sc delete %_svc_name%
     )
+    :ServiceControlExit
 exit /b 0
 
 :ServiceCleanup
-    for %%I in ("%SVC_NAME%" "WinDivert" "WinDivert14") do (
+    for %%I in ( "%SVC_NAME%" "WinDivert" "WinDivert14" ) do (
         call :ServiceControl %%I delete
     )
-ivert14"
 exit /b 0
 
 :ServiceCleanupOthers
@@ -400,12 +386,14 @@ exit /b 0
 :RunExe
     if not defined ARGS (
         echo "Настройки не определены, остановка \ The settings are not defined, break"
-        exit /b 0
+        goto RunExeExit
     )
     call :SaveCurrentConfig
     set EXEC_STR="%WINWS_BIN%" @"%CONFIG_FILE%"
     echo Запускаем программу с параметрами \ Starting winws with cmd %EXEC_STR%
     start "zapret: http,https,quic" /min %EXEC_STR%
+
+    :RunExeExit
 exit /b 0
 
 :ChooseVariant
@@ -489,7 +477,7 @@ exit /b 0
     if %op%==6 (
         goto end
     )
-    goto :MainMenu
+    goto MainMenu
 exit /b 0
 
 :main
