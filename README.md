@@ -1,8 +1,6 @@
----
 [//]: # (Title: zapret-winws-kodx readme)
 [//]: # (Author: Yegor Bayev <kodx.org>)
 [//]: # (URL: https://github.com/kodx/zapret-winws-kodx)
----
 
 # Zapret winws kodx
 
