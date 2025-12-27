@@ -127,11 +127,19 @@ exit /b 0
     )
 
     :: if starts with "AUTO_"
-    if "%_in_name:~0,5%" == "AUTO_" (
+    if "%_in_name%" == "AUTO_LIST" (
         set "_file_type=--hostlist-auto"
     )
 
     if "%_in_name%" == "EXCLUDE_LIST" (
+        set "_file_type=--hostlist-exclude"
+    )
+
+    if "%_in_name%" == "EXCLUDE_IPSET" (
+        set "_file_type=--ipset-exclude"
+    )
+
+    if "%_in_name%" == "AUTO_EXCLUDE_LIST" (
         set "_file_type=--hostlist-exclude"
     )
 
@@ -253,39 +261,34 @@ exit /b 0
 
     :SetArgsStr
 
+    set EXCLUDE_LIST_STR=%EXCLUDE_LIST% %EXCLUDE_IPSET% %CUSTOM_EXCLUDE_LIST%
+
     set ARGS=--wf-tcp=80,443,2053,2083,2087,2096,8443 --wf-udp=19294-19344,50000-50100 ^
 --wf-raw-part=@"%WINDIVERT_QUIC_INITIAL_FILE%" ^
 --wf-raw-part=@"%WINDIVERT_WIREGUARD_FILE%" ^
---filter-tcp=80 %YT_LIST% %YT_HTTP% --new ^
---filter-tcp=443 %YT_LIST% %YT_HTTPS% --new ^
---filter-l7=quic %YT_LIST% %YT_QUIC% --new ^
---filter-tcp=80 %DIS_LIST% %DIS_HTTP% --new ^
---filter-tcp=443 %DIS_LIST% %DIS_HTTPS% --new ^
---filter-l7=quic %DIS_LIST% %DIS_QUIC% --new ^
+--filter-tcp=80 %YT_LIST% %EXCLUDE_LIST_STR% %YT_HTTP% --new ^
+--filter-tcp=443 %YT_LIST% %EXCLUDE_LIST_STR% %YT_HTTPS% --new ^
+--filter-l7=quic %YT_LIST% %EXCLUDE_LIST_STR% %YT_QUIC% --new ^
+--filter-tcp=80 %DIS_LIST% %EXCLUDE_LIST_STR% %DIS_HTTP% --new ^
+--filter-tcp=443 %DIS_LIST% %EXCLUDE_LIST_STR% %DIS_HTTPS% --new ^
+--filter-l7=quic %DIS_LIST% %EXCLUDE_LIST_STR% %DIS_QUIC% --new ^
 --filter-udp=19294-19344,50000-50100 %DIS_UDP% --new ^
 --filter-tcp=2053,2083,2087,2096,8443 --hostlist-domains=discord.media %DIS_MEDIA%
-
-    if defined CF_IPSET (
-        set ARGS=%ARGS% --new ^
---filter-tcp=80 %CF_IPSET% %CF_HTTP% --new ^
---filter-tcp=443 %CF_IPSET% %CF_HTTPS% --new ^
---filter-l7=quic %CF_IPSET% %CF_QUIC%
-    )
 
     set "CUSTOM_LIST=%CUSTOM_LIST% %CUSTOM_IPSET% %BLACK_LIST%"
     :: remove spaces
     set "TMP_STR=%CUSTOM_LIST: =%"
     if defined TMP_STR (
         set ARGS=%ARGS% --new ^
---filter-tcp=80 %CUSTOM_LIST% %CUSTOM_HTTP% --new ^
---filter-tcp=443 %CUSTOM_LIST% %CUSTOM_HTTPS% --new ^
---filter-l7=quic %CUSTOM_LIST% %CUSTOM_QUIC%
+--filter-tcp=80 %CUSTOM_LIST% %EXCLUDE_LIST_STR% %CUSTOM_HTTP% --new ^
+--filter-tcp=443 %CUSTOM_LIST% %EXCLUDE_LIST_STR% %CUSTOM_HTTPS% --new ^
+--filter-l7=quic %CUSTOM_LIST% %EXCLUDE_LIST_STR% %CUSTOM_QUIC%
     )
 
     set ARGS=%ARGS% --new ^
---filter-tcp=80 %AUTO_LIST% %EXCLUDE_LIST% %CUSTOM_HTTP% --new ^
---filter-tcp=443 %AUTO_LIST% %EXCLUDE_LIST% %CUSTOM_HTTPS% --new ^
---filter-l7=quic %AUTO_LIST% %EXCLUDE_LIST% %CUSTOM_QUIC%
+--filter-tcp=80 %AUTO_LIST% %EXCLUDE_LIST_STR% %AUTO_EXCLUDE_LIST% %CUSTOM_HTTP% --new ^
+--filter-tcp=443 %AUTO_LIST% %EXCLUDE_LIST_STR% %AUTO_EXCLUDE_LIST% %CUSTOM_HTTPS% --new ^
+--filter-l7=quic %AUTO_LIST% %EXCLUDE_LIST_STR% %AUTO_EXCLUDE_LIST% %CUSTOM_QUIC%
 
     :SetArgsExit
 exit /b 0
@@ -449,7 +452,7 @@ exit /b 0
     echo 1. Установка/Обновление службы       │ Setup/Update service
     echo 2. Загрузка/Обновление списка сайтов │ Setup/Update russia blacklist
     echo 3. Пробный запуск в окне             │ Test run in separate window
-    echo 4. Удаление службы                   │ Delete service
+    echo 4. Удалить службу                    │ Delete service
     echo 5. Очистка от похожих программ       │ Cleanup from similar programs
     echo 6. Выход                             │ Exit
     echo.
